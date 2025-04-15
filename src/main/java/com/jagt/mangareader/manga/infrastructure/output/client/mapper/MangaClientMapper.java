@@ -8,6 +8,7 @@ import com.jagt.mangareader.manga.infrastructure.output.client.dto.feed.FeedList
 import com.jagt.mangareader.manga.infrastructure.output.client.dto.feed.FeedClientResponse;
 import com.jagt.mangareader.manga.infrastructure.output.client.dto.manga.*;
 import com.jagt.mangareader.shared.domain.PaginatedResult;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -22,16 +23,19 @@ public interface MangaClientMapper {
     @Mapping(target = "description", source = "data.attributes.description", qualifiedByName = "getDescription")
     @Mapping(target = "coverId", source = "data.relationships", qualifiedByName = "getCoverId")
     @Mapping(target = "fileName", source = "data.relationships", qualifiedByName = "getFileName")
-    Manga toManga(MangaClientResponse response);
+    Manga toManga(MangaClientResponse response, @Context List<String> languages);
 
     @Mapping(target = "title", source = "attributes.title", qualifiedByName = "getEnglishTitle")
     @Mapping(target = "description", source = "attributes.description", qualifiedByName = "getDescription")
     @Mapping(target = "coverId", source = "relationships", qualifiedByName = "getCoverId")
     @Mapping(target = "fileName", source = "relationships", qualifiedByName = "getFileName")
-    Manga toManga(MangaDataClientResponse response);
+    Manga toManga(MangaDataClientResponse response, @Context List<String> languages);
 
-    PaginatedResult<Manga> toPaginatedResult(MangaListClientResponse response);
+    @Mapping(target = "title", source = "title", qualifiedByName = "getEnglishTitle")
+    @Mapping(target = "description", source = "description", qualifiedByName = "getDescription")
+    Manga toManga(MangaAttributesClientResponse response, @Context List<String> languages);
 
+    PaginatedResult<Manga> toPaginatedResult(MangaListClientResponse response, @Context List<String> languages);
 
     @Mapping(target = "volume", source = "attributes.volume")
     @Mapping(target = "chapter", source = "attributes.chapter")
@@ -54,11 +58,12 @@ public interface MangaClientMapper {
     }
 
     @Named("getDescription")
-    default String getDescription(Map<String, String> description) {
-        if (description == null) return null;
-        if (description.containsKey("es")) return description.get("es") != null ? description.get("es") : description.get("es-la");
-        if (description.containsKey("en")) return description.get("en");
-        return description.values().stream().findFirst().orElse(null);
+    default String getDescription(Map<String, String> description, @Context List<String> languages) {
+        String language = languages.getFirst();
+        if (description == null || languages.isEmpty()) return null;
+        if (description.containsKey(language)) return description.get(language);
+        if (description.containsKey("es-la") && language.equals("es")) return description.get("es-la");
+        return null;
     }
 
     @Named("getCoverId")
