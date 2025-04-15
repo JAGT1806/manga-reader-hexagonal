@@ -17,13 +17,12 @@ import java.util.List;
 public class MangaService implements MangaServicePort {
     private final MangaClientPort mangaClientPort;
 
-    private static final String INCLUDES = "cover_art";
     private static final List<String> SAFE_CONTENT = List.of("safe", "suggestive");
     private static final List<String> NSFW_CONTENT = List.of("erotica", "pornographic");
 
     @Override
     public Manga searchMangaById(String id, String language) {
-        return mangaClientPort.searchMangaById(id, language);
+        return mangaClientPort.searchMangaById(id, List.of(language));
     }
 
     @Override
@@ -32,7 +31,7 @@ public class MangaService implements MangaServicePort {
         if(nsfw) contentRatingFilters.addAll(NSFW_CONTENT);
         List<String> availableTranslatedLanguage = getLanguage(language);
 
-        return mangaClientPort.searchMangas(title, INCLUDES, offset, limit, contentRatingFilters, availableTranslatedLanguage);
+        return mangaClientPort.searchMangas(title, offset, limit, contentRatingFilters, availableTranslatedLanguage);
     }
 
     @Override

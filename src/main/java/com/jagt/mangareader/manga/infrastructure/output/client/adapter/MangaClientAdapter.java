@@ -18,16 +18,16 @@ public class MangaClientAdapter implements MangaClientPort {
     private final MangaDexClient mangaDexClient;
     private final MangaClientMapper mapper;
 
-    private static final String DEFAULT_INCLUDES = "covert_art";
+    private static final String DEFAULT_INCLUDES = "cover_art";
 
     @Override
-    public Manga searchMangaById(String id, String includes) {
-        return mapper.toManga(mangaDexClient.getMangaId(id, DEFAULT_INCLUDES));
+    public Manga searchMangaById(String id, List<String> languages) {
+        return mapper.toManga(mangaDexClient.getMangaId(id, DEFAULT_INCLUDES), languages);
     }
 
     @Override
-    public PaginatedResult<Manga> searchMangas(String title, String includes, int offset, int limit, List<String> contentRating, List<String> language) {
-        return mapper.toPaginatedResult(mangaDexClient.getSearchManga(title, includes, offset, limit, contentRating, language));
+    public PaginatedResult<Manga> searchMangas(String title, int offset, int limit, List<String> contentRating, List<String> language) {
+        return mapper.toPaginatedResult(mangaDexClient.getSearchManga(title, DEFAULT_INCLUDES, offset, limit, contentRating, language), language);
     }
 
     @Override
