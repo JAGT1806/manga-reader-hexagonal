@@ -2,6 +2,7 @@ package com.jagt.mangareader.shared.infrastructure.web.handler;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.jagt.mangareader.i18n.domain.MessageProvider;
+import com.jagt.mangareader.role.domain.exceptions.RoleNotFoundException;
 import com.jagt.mangareader.shared.infrastructure.web.response.ErrorResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
@@ -21,7 +22,14 @@ public class GlobalExceptionHandler {
     private final MessageProvider messageProvider;
 
     // ----- Excepciones personalizadas
-
+    @ExceptionHandler(RoleNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleRoleNotFoundException() {
+        return buildErrorResponse(
+                HttpStatus.NOT_FOUND,
+                messageProvider.getMessage("error.role.not.found"),
+                List.of()
+        );
+    }
 
     // ----- Excepciones -----
     @ExceptionHandler(DataAccessException.class)
@@ -37,24 +45,23 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         Throwable cause = ex.getCause();
 
-        if(cause instanceof InvalidFormatException formatException) {
-            if(formatException.getTargetType().isEnum()) {
-                List<String> validateValues = Stream.of(formatException.getTargetType().getEnumConstants())
-                        .map(Object::toString)
-                        .toList();
+        if(cause instanceof InvalidFormatException formatException && formatException.getTargetType().isEnum()) {
+            List<String> validateValues = Stream.of(formatException.getTargetType().getEnumConstants())
+                    .map(Object::toString)
+                    .toList();
 
-                String fieldName = formatException.getPath() != null && !formatException.getPath().isEmpty()
-                        ? formatException.getPath().getFirst().getFieldName()
-                        : "desconocido";
+            String fieldName = formatException.getPath() != null && !formatException.getPath().isEmpty()
+                    ? formatException.getPath().getFirst().getFieldName()
+                    : "desconocido";
 
-                String message = messageProvider.getMessage("error.enum.invalid", new Object[]{fieldName, validateValues});
-                return buildErrorResponse(
-                        HttpStatus.BAD_REQUEST,
-                        messageProvider.getMessage("error.format.invalid"),
-                        List.of(message)
-                );
-            }
+            String message = messageProvider.getMessage("error.enum.invalid", new Object[]{fieldName, validateValues});
+            return buildErrorResponse(
+                    HttpStatus.BAD_REQUEST,
+                    messageProvider.getMessage("error.format.invalid"),
+                    List.of(message)
+            );
         }
+
 
         return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
