@@ -1,5 +1,6 @@
 package com.jagt.mangareader.role.application.service;
 
+import com.jagt.mangareader.role.domain.exceptions.RoleNotFoundException;
 import com.jagt.mangareader.role.domain.model.Role;
 import com.jagt.mangareader.role.domain.ports.input.RoleServicePort;
 import com.jagt.mangareader.role.domain.ports.output.RolePersistencePort;
@@ -43,7 +44,7 @@ public class RoleService implements RoleServicePort {
     @Override
     public Role getRoleById(Long roleId) {
         return rolePersistencePort.findById(roleId)
-                .orElseThrow();
+                .orElseThrow(() -> new RoleNotFoundException(null));
     }
 
     @Override
