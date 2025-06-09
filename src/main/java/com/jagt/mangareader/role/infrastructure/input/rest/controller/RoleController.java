@@ -1,7 +1,10 @@
 package com.jagt.mangareader.role.infrastructure.input.rest.controller;
 
 import com.jagt.mangareader.role.domain.model.Role;
-import com.jagt.mangareader.role.domain.ports.input.RoleServicePort;
+import com.jagt.mangareader.role.domain.usecases.CreateRoleUseCase;
+import com.jagt.mangareader.role.domain.usecases.GetAllRolesUseCase;
+import com.jagt.mangareader.role.domain.usecases.GetRoleByIdUseCase;
+import com.jagt.mangareader.role.domain.usecases.UpdateRoleUseCase;
 import com.jagt.mangareader.role.infrastructure.input.rest.mapper.RoleRestMapper;
 import com.jagt.mangareader.role.infrastructure.input.rest.request.RoleRequest;
 import com.jagt.mangareader.shared.domain.PaginatedResult;
@@ -16,7 +19,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/roles")
 @RequiredArgsConstructor
 public class RoleController {
-    private final RoleServicePort servicePort;
+    private final GetAllRolesUseCase getAllRolesUseCase;
+    private final GetRoleByIdUseCase getRoleByIdUseCase;
+    private final CreateRoleUseCase createRoleUseCase;
+    private final UpdateRoleUseCase updateRoleUseCase;
     private final RoleRestMapper mapper;
 
     @GetMapping
@@ -25,17 +31,17 @@ public class RoleController {
             @RequestParam(required = false, defaultValue = "0") int offset,
             @RequestParam(required = false, defaultValue = "12") int limit
     ) {
-        return ResponseEntity.ok(servicePort.getAllRoles(role, offset, limit));
+        return ResponseEntity.ok(getAllRolesUseCase.execute(role, offset, limit));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Role> getRoleById(@PathVariable Long id) {
-        return ResponseEntity.ok(servicePort.getRoleById(id));
+        return ResponseEntity.ok(getRoleByIdUseCase.execute(id));
     }
 
     @PostMapping("/create")
     public ResponseEntity<OkResponse> createRole(@Valid @RequestBody RoleRequest request) {
-        servicePort.createRole(mapper.toRole(request));
+        createRoleUseCase.execute(mapper.toCreateRoleCommand(request));
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(OkResponse.of(String.valueOf(HttpStatus.CREATED.value())));
@@ -43,7 +49,7 @@ public class RoleController {
 
     @PutMapping("/{id}/update")
     public ResponseEntity<OkResponse> updateRole(@PathVariable Long id, @Valid @RequestBody RoleRequest request) {
-        servicePort.updateRole(id, mapper.toRole(request));
+        updateRoleUseCase.execute(mapper.toUpdateRoleCommand(id, request));
         return ResponseEntity.ok(OkResponse.of(String.valueOf(HttpStatus.OK.value())));
     }
 
